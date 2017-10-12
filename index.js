@@ -61,8 +61,20 @@ app.get('/api/tours',function(req,res){
     res.format({
     	'application/json': function(){
     		res.json(tours);
+    	},
+    	'application/xml': function(){
+    		res.type('application/xml');
+    		res.send(toursxml);
+    	},
+    	'text/xml': function(){
+    		res.type('text/xml');
+    		res.send(toursxml);
+    	},
+    	'text/plain': () =>{
+    		res.type('text/plain');
+    		res.send(toursxml);
     	}
-    })
+    });
 });
 
 
