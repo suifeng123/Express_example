@@ -1,5 +1,7 @@
 var express = require('express'); //首先将express引进来
 var app = new express(); //创建一个类，
+//将密匙引进来
+var credentials = require('./credentials.js');
 /*
 在后序的时间中我会继续研究express的源码设计原理
  */ 
@@ -9,6 +11,13 @@ app.disable('x-powered-by');
 app.get('/',function(req,res){
 	res.send('Hello World!!!282231');
 });
+app.use(require('cookie-parser')(credentials.cookieSecret));
+res.cookie('monster','nom nom');
+res.cookie('signed_monster','nom nom',{singned:true});
+
+//获取cookie
+var monster = req.cookie.monster;
+var signedMonster = req.signedCookies.monster;
 //请求头的信息
 app.get('/headers',function(req,res){
     res.set('Content-Type','text/plain');
@@ -17,6 +26,7 @@ app.get('/headers',function(req,res){
     	s += name + ':' + req.headers[name]+'\n';
     res.send(s);
 });
+
 
 //写一个测试页 基本用法这个测试选项有点问题
 app.get('/test',function(req,res){
@@ -76,6 +86,8 @@ app.get('/api/tours',function(req,res){
     	}
     });
 });
+
+
 
 
 
