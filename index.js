@@ -12,8 +12,20 @@ app.get('/',function(req,res){
 	res.send('Hello World!!!282231');
 });
 app.use(require('cookie-parser')(credentials.cookieSecret));
+app.use(require('express-session')());
+req.session.userName = "Anoymous";
+var colorScheme = req.session.colorScheme || 'dark';
 res.cookie('monster','nom nom');
 res.cookie('signed_monster','nom nom',{singned:true});
+
+app.use(function(req, res, next){
+// 如果有即显消息，把它传到上下文中，然后清除它
+res.locals.flash = req.session.flash;
+delete req.session.flash;
+next();
+});
+
+
 
 //获取cookie
 var monster = req.cookie.monster;
@@ -27,7 +39,37 @@ app.get('/headers',function(req,res){
     res.send(s);
 });
 
-
+app.post('/newsletter', function(req, res){
+var name = req.body.name || '', email = req.body.email || '';
+// 输入验证
+if(!email.match(VALID_EMAIL_REGEX)) {
+if(req.xhr) return res.json({ error: 'Invalid name email address.' });
+req.session.flash = {
+type: 'danger',
+intro: 'Validation error!',
+message: 'The email address you entered was not valid.',
+};
+return res.redirect(303, '/newsletter/archive');
+}
+new NewsletterSignup({ name: name, email: email }).save(function(err){
+if(err) {
+if(req.xhr) return res.json({ error: 'Database error.' });
+req.session.flash = {
+type: 'danger',
+intro: 'Database error!',
+message: 'There was a database error; please try again later.',
+}
+return res.redirect(303, '/newsletter/archive');
+}
+if(req.xhr) return res.json({ success: true });
+req.session.flash = {
+type: 'success',
+intro: 'Thank you!',
+message: 'You have now been signed up for the newsletter.',
+};
+return res.redirect(303, '/newsletter/archive');
+});
+});
 //写一个测试页 基本用法这个测试选项有点问题
 app.get('/test',function(req,res){
 	res.type('text/plain');
